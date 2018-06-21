@@ -519,29 +519,33 @@ def get_tweets(directory):
     Returns a list of tweets
     '''
 
+    print("Current Folder: {0}".format(directory))
+
     # ls: the list to return
     ls = list()
 
     # Get the tweet text fields from each file
-    for fil in os.listdir(directory):
-
+    for elem in os.listdir(directory):
         # build the absolute path to the file
-        fil = os.path.join(directory, fil)
-
-        # read the current file
-        try:
-            inp = open(fil, 'r', encoding="utf8")
-            for line in inp:
-                # Get the tweet from the json
-                # and append it to ls if it is in English
-                tweet = json.loads(line)
-                if tweet["lang"] == "en":
-                    ls.append(tweet)
-        except:
-            print("Error reading from file")
-        finally:
-            inp.close()
-
+        elem = os.path.join(directory, elem)
+        # get the tweets from it if it's a directory
+        if os.path.isdir(elem):
+           ls.extend(get_tweets(elem))
+        # if it's a file open it and read the tweets from it
+        elif os.path.isfile(elem):
+            # read the current file
+            try:
+                inp = open(elem, 'r', encoding="utf8")
+                for line in inp:
+                    # Get the tweet from the json
+                    # and append it to ls if it is in English
+                    tweet = json.loads(line)
+                    if tweet["lang"] == "en":
+                        ls.append(tweet)
+            except:
+                print("Error reading from file")
+            finally:
+                inp.close()
     return ls
 
 

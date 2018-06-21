@@ -257,23 +257,45 @@ def user_graph(directory):
     # Get all the tweets in the directory
     tweets = get_tweets(directory)
 
+    print("Retrieved all tweets in {0}".format(directory))  # Log
+    print("Number of tweets: {0}".format(len(tweets)))  # Log
+
     for tweet in tweets:
         try:
             # treat it first like a retweet
-            retweet = tweet["retweeted_status"]
+            retweet = tweet["retweeted_status"]["user"]["screen_name"]
+            tweet_name = tweet["user"]["screen_name"]
             # add the edge with id string of the tweets as the id of the
             # vertices and the screen names as the data of the vertices
+            head = g.getVertex(retweet)
+            if tweet_name not in head.getConnections():
+                g.addEdge(
+                        retweet,
+                        tweet_name,
+                        1
+                        )
+            else:
+                g.addEdge(
+                        retweet,
+                        tweet_name,
+                        head.getWeight(tweet_name) + 1,
+                        )
+        except AttributeError:
+            print("Attribute Error")
             g.addEdge(
-                    retweet["id_str"],
-                    tweet["id_str"],
-                    f_data=retweet["user"]["screen_name"],
-                    t_data=tweet["user"]["screen_name"]
-                    )
+                        tweet["retweeted_status"]["user"]["screen_name"],
+                        tweet["user"]["screen_name"],
+                        1
+                        )
         except KeyError:
+            print("Key Error")
             # not a retweet because the retweeted status not been found!
 
             # add the tweet to the relationship dictionary
-            g.addVertex(tweet["id_str"], tweet["user"]["screen_name"])
+            g.addVertex(tweet["user"]["screen_name"])
+
+    print("Finished constructing graph")  # Log
+
     return g
 
 
@@ -283,12 +305,14 @@ def get_unique_users(graph):
 
     Returns: a sorted list of all the unique users
     '''
-    users = list()  # the list to return
+    users = set()  # the list to return
 
     # Find all the unique users
-    for v in graph:
-        if v.getData() not in users:
-            users.append(v.getData())
+    users = set(graph.getVertices())
+
+    print("Retrieved all users. Number of Users: {0}".format(
+        len(users)))  # Log
+
     return(sorted(users))
 
 
@@ -310,26 +334,32 @@ def fill_matrix(graph):
     '''
 
     matrix = list()  # Store the matrix data in a list
-    users = get_unique_users(graph)  # list of all the unique users
-    originals = graph.getRoots()  # all the root tweets
+    users = sorted(list(graph.getVertices()))  # list of all the unique users
+    users_length = len(users)
+
+    print("Number of users: {0}".format(users_length))  # Log
 
     # get row-column information
     # user_indices maps a username to a unique column number
     # tweet_indices maps a tweet id to a unique row number
-    user_indices = dict(zip(users, range(len(users))))
-    tweet_indices = dict(zip(
-        [o.getId() for o in originals], range(len(originals))))
+    user_indices = dict(zip(users, range(users_length)))
+
+    print("Finished constructing user indices")  # Log
 
     # Fill the matrix with 0's
-    for i in range(0, len(originals)):
-        matrix.append([0] * len(users))
+    for i in range(0, users_length):
+        matrix.append([0] * users_length)
 
-    for og in originals:
-        for retw in og.getConnections():
-            matrix[tweet_indices[og.getId()]][user_indices[
-                retw.getData()]] = 1
+    print("Matrix filled with 0's")  # Log
 
-    return (matrix, users, tweet_indices, user_indices)
+    for v in graph:
+        for retw in v.getConnections():
+            matrix[user_indices[v.getId()]][user_indices[
+                retw.getId()]] += 1
+
+    print("Matrix constructed")  # Log
+
+    return (matrix, users, user_indices)
 
 
 def print_user_graph(graph):
@@ -342,7 +372,7 @@ def print_user_graph(graph):
     '''
 
     # Create the matrix
-    matrix, users, tweet_indices, user_indices = fill_matrix(graph)
+    matrix, users, user_indices = fill_matrix(graph)
 
     # Print everything in the matrix out
 
@@ -355,11 +385,12 @@ def print_user_graph(graph):
         # fancy print all the screen_names of the users
         # truncate the name to 10 characters and right align at 15 chars
         print("{0:>15.10}".format(name), end="")
-    for tw in graph.getRoots():
+
+    for name in users:
         # fancy print the screen_name of the user who tweeted
         # truncate it at 10 characters and right align it at 10 chars
-        print("\n{0:>10.10}".format(tw.getData()), end=" " * 5)
-        for value in matrix[tweet_indices[tw.getId()]]:
+        print("\n{0:>10.10}".format(name, end=" " * 5))
+        for value in matrix[user_indices[name]]:
             # fancy print every value in the list associated with this
             print("{0:<15}".format(value), end="")
 

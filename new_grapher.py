@@ -13,7 +13,7 @@ Date: 6/14/2018
 
 
 class Vertex:
-    def __init__(self, key, data):
+    def __init__(self, key, data=None):
         self.id = key
         self.connectedTo = {}
         self.data = data
@@ -52,7 +52,7 @@ class Graph:
         self.numVertices = 0
         self.roots = list()
 
-    def addVertex(self, key, data):
+    def addVertex(self, key, data=None):
         self.numVertices = self.numVertices + 1
         newVertex = Vertex(key, data)
         self.vertList[key] = newVertex
