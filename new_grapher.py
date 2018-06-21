@@ -83,6 +83,12 @@ class Graph:
         except ValueError:
             pass
 
+    def modifyWeight(self, f, t, weight):
+        if f is None or t is None or t not in f.getConnections():
+            raise ValueError
+        else:
+            f.connectedTo[t] += weight
+
     def getVertices(self):
         return self.vertList.keys()
 

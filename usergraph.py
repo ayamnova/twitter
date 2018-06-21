@@ -15,7 +15,7 @@ AND EVERY EDGE SIGNIFIES A LEVEL 1 USER RELATIONSHIP
 
 import sys
 import pickle
-import random_color
+# import random_color
 
 import networkx as nx
 
@@ -261,38 +261,33 @@ def user_graph(directory):
     print("Number of tweets: {0}".format(len(tweets)))  # Log
 
     for tweet in tweets:
-        try:
-            # treat it first like a retweet
-            retweet = tweet["retweeted_status"]["user"]["screen_name"]
-            tweet_name = tweet["user"]["screen_name"]
-            # add the edge with id string of the tweets as the id of the
-            # vertices and the screen names as the data of the vertices
-            head = g.getVertex(retweet)
-            if tweet_name not in head.getConnections():
+        t_user = tweet["user"]["screen_name"]
+        if tweet.get("retweeted_status") is None:
+            g.addVertex(t_user)
+        else:
+            o_user = tweet["retweeted_status"]["user"]["screen_name"]
+            head = g.getVertex(o_user)
+            tail = g.getVertex(t_user)
+            # Case 1: Neither User exists in the graph
+            if head is None or tail is None:
+                # Make a new edge and two new users
                 g.addEdge(
-                        retweet,
-                        tweet_name,
-                        1
+                        o_user,
+                        t_user,
+                        cost=1
                         )
+            # Case 2: An edge already exists between both users
+            elif tail in head.getConnections():
+                # increase the weight of the edge
+                g.modifyWeight(head, tail, 1)
+            # Remaining cases (both users exist but there's no link)
             else:
+                # Make a new edge
                 g.addEdge(
-                        retweet,
-                        tweet_name,
-                        head.getWeight(tweet_name) + 1,
+                        o_user,
+                        t_user,
+                        cost=1
                         )
-        except AttributeError:
-            print("Attribute Error")
-            g.addEdge(
-                        tweet["retweeted_status"]["user"]["screen_name"],
-                        tweet["user"]["screen_name"],
-                        1
-                        )
-        except KeyError:
-            print("Key Error")
-            # not a retweet because the retweeted status not been found!
-
-            # add the tweet to the relationship dictionary
-            g.addVertex(tweet["user"]["screen_name"])
 
     print("Finished constructing graph")  # Log
 
@@ -347,15 +342,15 @@ def fill_matrix(graph):
     print("Finished constructing user indices")  # Log
 
     # Fill the matrix with 0's
-    for i in range(0, users_length):
-        matrix.append([0] * users_length)
+    empty_data = [0] * users_length
+    matrix = [list(empty_data) for i in range(0, users_length)]
 
     print("Matrix filled with 0's")  # Log
 
-    for v in graph:
-        for retw in v.getConnections():
-            matrix[user_indices[v.getId()]][user_indices[
-                retw.getId()]] += 1
+    for user in graph:
+        for neighbor in user.getConnections():
+            matrix[user_indices[user.getId()]][
+                    user_indices[neighbor.getId()]] = user.getWeight(neighbor)
 
     print("Matrix constructed")  # Log
 
@@ -389,11 +384,10 @@ def print_user_graph(graph):
     for name in users:
         # fancy print the screen_name of the user who tweeted
         # truncate it at 10 characters and right align it at 10 chars
-        print("\n{0:>10.10}".format(name, end=" " * 5))
+        print("\n{0:>10.10}".format(name), end=" " * 5)
         for value in matrix[user_indices[name]]:
             # fancy print every value in the list associated with this
             print("{0:<15}".format(value), end="")
-
 
 if __name__ == '__main__':
     if sys.argv[1] == "save":
