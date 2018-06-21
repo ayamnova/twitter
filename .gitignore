@@ -2,6 +2,7 @@ access_tokens/**
 sources/**
 data/**
 articles/**
+conf/**
 connect.txt
 report.txt
 
