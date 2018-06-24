@@ -442,6 +442,24 @@ def add_positions(tweets):
     for tweet in tweets:
         # print("Current tweet:{0}".format(tweet["user"]["screen_name"]))
         try:
+            if tweet.get("retweeted_status") is not None:
+                if tweet["retweeted_status"] not in located_tweets:
+                    try:
+                        # find out what country this tweet was from
+                        country = resolver.resolve_tweet(
+                                tweet["retweeted_status"])[1].country
+                        # get the position in that country
+                        pos = get_coordinates(country)
+                        if pos is not None:
+                            # add the position informatoin to the tweet
+                            tweet["retweeted_status"]["position"] = {
+                                   "coordinates": pos,
+                                   "country": country}
+                            # append it to out list
+                            located_tweets.append(tweet["retweeted_status"])
+                    except TypeError:
+                        continue
+
             # find out what country this tweet was from
             country = resolver.resolve_tweet(tweet)[1].country
             # get the coordinates in that country
@@ -452,24 +470,10 @@ def add_positions(tweets):
                 # append to out list
                 located_tweets.append(tweet)
 
-            if tweet.get("retweeted_status") is not None:
-                if tweet["retweeted_status"] not in located_tweets:
-                    # find out what country this tweet was from
-                    country = resolver.resolve_tweet(
-                            tweet["retweeted_status"])[1].country
-                    # get the position in that country
-                    pos = get_coordinates(country)
-                    if pos is not None:
-                        # add the position informatoin to the tweet
-                        tweet["retweeted_status"]["position"] = {
-                               "coordinates": pos,
-                               "country": country}
-                        # append it to out list
-                        located_tweets.append(tweet["retweeted_status"])
         except TypeError:
             # The resolver returned a None value. Delete this tweet from the
             # list
-            pass
+            continue
 
     return located_tweets
 
