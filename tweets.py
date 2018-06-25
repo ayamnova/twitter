@@ -319,22 +319,6 @@ def add_tweet(rel, tweet):
     rel[tweet["id_str"]].append(data)
 
 
-def print_relationship(rel):
-    '''
-    A function to print out a relationship dictionary
-
-    rel: the relationship dictionary
-    '''
-    print(rel)
-    for key in rel.keys():
-        value = rel[key]
-        print(value)
-#      for key, value in rel:
-#          print("Value:{0}".format(value))
-#          value.sort()
-#          print("Value:{0}".format(value))
-
-
 def consolidate(directory, key, outfile=None):
     '''
     A function to consolidate all the values in all the tweets in a given
@@ -512,6 +496,28 @@ def print_locations(locations):
         for tweet in tweetlist:
             print("{0:^15.10}".format(tweet["user"]["screen_name"]), end="")
         print()
+
+
+def get_tweets_from_dirs(dirs, prefix=None):
+    '''
+    A method to get all the tweets for a list of directories
+
+    prefix: if all the folders in dirs is in the same folder, the prefix can be
+    passed to shorten the command
+
+    Returns a list of tweets
+    '''
+
+    if prefix is not None:
+        dirs = [os.path.join(prefix, d) for d in dirs]
+
+    tweets = list()
+    for d in dirs:
+        tweets.extend(get_tweets(d))
+
+    print("Retrieved all tweets in {0}".format(dirs))  # Log
+
+    return tweets
 
 
 def get_tweets(directory):

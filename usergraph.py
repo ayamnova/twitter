@@ -15,7 +15,7 @@ import networkx as nx
 import plotly.graph_objs as go
 import plotly
 
-from tweets import get_tweets, add_positions
+from tweets import get_tweets, add_positions, get_tweets_from_dirs
 import new_grapher as grapher
 
 '''
@@ -277,6 +277,7 @@ COLORS = list([
         (155, 0, 24)
     ])
 
+
 def build_graph(directory):
     '''
     A function to build a table based on retweets
@@ -443,7 +444,7 @@ def display_graph(graph):
     plotly.offline.plot(fig, filename='d3-world-map')
 
 
-def user_graph(directory):
+def user_graph(tweets):
     '''
     A function to build a graph based on retweets. Every vertex is a
     different tweet and every edge connects a tweet with a retweet.
@@ -455,10 +456,6 @@ def user_graph(directory):
 
     g = grapher.Graph()  # the dictionary to return
 
-    # Get all the tweets in the directory
-    tweets = get_tweets(directory)
-
-    print("Retrieved all tweets in {0}".format(directory))  # Log
     print("Number of tweets: {0}".format(len(tweets)))  # Log
 
     for tweet in tweets:
@@ -616,10 +613,13 @@ if __name__ == '__main__':
         g = load_graph(sys.argv[2])
         display_graph(g)
     elif sys.argv[1] == "print":
-        g = user_graph(sys.argv[2])
+        tweets = get_tweets(sys.argv[2].split(','))
+        g = user_graph(tweets)
         print_user_graph(g)
     elif sys.argv[1] == "mout":
-        g = user_graph(sys.argv[2])
+        tweets = get_tweets_from_dirs(
+                sys.argv[2].split(','), prefix='./crisis/crisis/2018')
+        g = user_graph(tweets)
         save_matrix(g, sys.argv[3])
     else:
         g = build_graph("./data/25crisis")

@@ -189,8 +189,8 @@ def clean_text(text):
 
 
 if __name__ == '__main__':
-    docs = build_documents_user(sys.argv[1])
-    # docs = build_documents_country(sys.argv[1])
+    # docs = build_documents_user(sys.argv[1])
+    docs = build_documents_country(sys.argv[1])
     tdm = fill_matrix(docs)
     # print(tdm)
     print_tdm(tdm[0], tdm[1])
