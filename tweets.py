@@ -349,23 +349,44 @@ def consolidate(directory, key, outfile=None):
         out.close()
 
 
-def get_sentiment(directory):
+def get_sentiment(tweets):
     '''
     A method to get the sentimentality of all the tweets in a directory
 
-    directory: the directory where all the flume data is
+    tweets: a list of tweets
 
-    Return: a list of sentimentality scores
+    Return: (total sentimentality, number of tweets, min, max)
     '''
 
-    scores = []
+    total = 0
+    _min = 0
+    _max  = 0
+    pos = 0
+    neg = 0
+
     afinn = Afinn(emoticons=True)
-    tweets = get_tweets(directory)
-    for text in get_values(tweets, ["text"]):
-        print(text, afinn.score(text))
-        scores.append(afinn.score(text))
-    scores.sort()
-    return scores
+    for t in tweets:
+        text = ""
+        sc = None
+        if t.get("extended_tweet") is None:
+            sc = afinn.score(t["text"])
+            text = t["text"]
+        else:
+            sc = afinn.score(t["extended_tweet"]["full_text"])
+            text = t["extended_tweet"]["full_text"]
+
+        total += sc
+
+        if sc < _min:
+            _min = sc
+        if sc > _max:
+            _max = sc
+        if sc < 0:
+            neg += 1
+        if sc > 0:
+            pos += 1
+
+    return(total, len(tweets), _min, _max, neg, pos)
 
 
 def get_coordinates(country, bad_locations=[]):
@@ -498,7 +519,7 @@ def print_locations(locations):
         print()
 
 
-def get_tweets_from_dirs(dirs, prefix=None):
+def get_tweets_from_dirs(dirs, prefix=None, unique=False):
     '''
     A method to get all the tweets for a list of directories
 
@@ -511,16 +532,18 @@ def get_tweets_from_dirs(dirs, prefix=None):
     if prefix is not None:
         dirs = [os.path.join(prefix, d) for d in dirs]
 
+    print(dirs)
+
     tweets = list()
     for d in dirs:
-        tweets.extend(get_tweets(d))
+        tweets.extend(get_tweets(d, unique=unique)[0])
 
     print("Retrieved all tweets in {0}".format(dirs))  # Log
 
     return tweets
 
 
-def get_tweets(directory):
+def get_tweets(directory, unique=False):
     '''
     A function to get all the tweets from a directory
 
@@ -531,8 +554,10 @@ def get_tweets(directory):
 
     print("Current Folder: {0}".format(directory))
 
-    # ls: the list to return
-    ls = list()
+    ls = list()  # the list of tweets to return
+    seen = set()  # the set of already processed tweets
+    num_filtered = 0  # the number of filtered tweets
+    num_repeat = 0
 
     # Get the tweet text fields from each file
     for elem in os.listdir(directory):
@@ -540,7 +565,10 @@ def get_tweets(directory):
         elem = os.path.join(directory, elem)
         # get the tweets from it if it's a directory
         if os.path.isdir(elem):
-           ls.extend(get_tweets(elem))
+            tw, flt, rpt = get_tweets(elem)
+            ls.extend(tw)
+            num_filtered += num_filtered
+            num_repeat += rpt
         # if it's a file open it and read the tweets from it
         elif os.path.isfile(elem):
             # read the current file
@@ -551,12 +579,22 @@ def get_tweets(directory):
                     # and append it to ls if it is in English
                     tweet = json.loads(line)
                     if tweet["lang"] == "en":
-                        ls.append(tweet)
+                        if unique:
+                            _id = tweet["id_str"]
+                            if _id not in seen:
+                                ls.append(tweet)
+                                seen.add(_id)
+                            else:
+                                num_repeat += 1
+                        else:
+                            ls.append(tweet)
+                    else:
+                        num_filtered += 1
             except:
                 print("Error reading from file")
             finally:
                 inp.close()
-    return ls
+    return (ls, num_filtered, num_repeat)
 
 
 def get_values(tweets, key):
@@ -601,7 +639,8 @@ if __name__ == '__main__':
         key = parse_key_argument(sys.argv[3])
         consolidate(directory, key)
     elif sys.argv[1] == "sent":
-        get_sentiment(directory)
+        tweets = get_tweets(directory)
+        get_sentiment(tweets[0])
     elif sys.argv[1] == "loc":
         get_locations(directory)
     else:

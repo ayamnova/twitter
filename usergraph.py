@@ -8,12 +8,13 @@ Date: 6/1/2018
 '''
 import sys
 import pickle
-import random_color
+import datetime as dt
+# import random_color
 
 import networkx as nx
 
-import plotly.graph_objs as go
-import plotly
+# import plotly.graph_objs as go
+# import plotly
 
 from tweets import get_tweets, add_positions, get_tweets_from_dirs
 import new_grapher as grapher
@@ -446,8 +447,8 @@ def display_graph(graph):
 
 def user_graph(tweets):
     '''
-    A function to build a graph based on retweets. Every vertex is a
-    different tweet and every edge connects a tweet with a retweet.
+    A function to build a graph based on retweets. Every edge connects a
+    retweeter to a user who tweets
 
     directory: the directory with all the tweets in it
 
@@ -459,11 +460,11 @@ def user_graph(tweets):
     print("Number of tweets: {0}".format(len(tweets)))  # Log
 
     for tweet in tweets:
-        t_user = tweet["user"]["screen_name"]
+        o_user = tweet["user"]["screen_name"]
         if tweet.get("retweeted_status") is None:
-            g.addVertex(t_user)
+            g.addVertex(o_user)
         else:
-            o_user = tweet["retweeted_status"]["user"]["screen_name"]
+            t_user = tweet["retweeted_status"]["user"]["screen_name"]
             head = g.getVertex(o_user)
             tail = g.getVertex(t_user)
             # Case 1: Neither User exists in the graph
@@ -507,6 +508,55 @@ def get_unique_users(graph):
         len(users)))  # Log
 
     return(sorted(users))
+
+def write_file(graph, fil):
+    '''
+    A function to fill a 2d matrix with the user graph information. 
+    There is one row for each unique tweet and there is one column for 
+    each unique user. A one in a cell indicates that a given user
+    retweeted the tweet on that row
+
+    graph: the graph of tweet-retweets
+
+    Returns: a four-part tuple (matrix, users, tweets_nums, users_nums)
+    1. matrix: a 2-D matrix of tweet-retweets
+    2. users: a sorted list of unique users
+    3. tweets_nums: a dictionary of tweet_id-row_num
+    4. users_nums: a dictionary of user_names-col_num
+
+    '''
+
+    users = sorted(list(graph.getVertices()))  # list of all the unique users
+    users_length = len(users)
+
+    print("{0:%I:%M:%S:%f} Number of users: {1}".format(
+        dt.datetime.now(), users_length))  # Log
+
+    # get row-column information
+    # user_indices maps a username to a unique column number
+    # tweet_indices maps a tweet id to a unique row number
+    user_indices = dict(zip(users, range(users_length)))
+
+    print("{0:%I:%M:%S:%f} Finished constructing user indices".format(
+        dt.datetime.now()))  # Log
+
+    f = open(fil, 'w')
+
+    # Fill the matrix with 0's
+    empty_data = [0] * users_length
+
+    for user in users:
+        vert = graph.getVertex(user)
+        row = list(empty_data)
+        for neighbor in vert.getConnections():
+            row[user_indices[neighbor.getId()]] = vert.getWeight(neighbor)
+
+        f.write("\t".join(map(str, row)))
+
+    print("{0:%I:%M:%S:%f} Finished printing rows".format(
+        dt.datetime.now()))  # Log
+
+    return (users, user_indices)
 
 
 def fill_matrix(graph):
@@ -618,9 +668,9 @@ if __name__ == '__main__':
         print_user_graph(g)
     elif sys.argv[1] == "mout":
         tweets = get_tweets_from_dirs(
-                sys.argv[2].split(','), prefix='./crisis/crisis/2018')
+                sys.argv[2].split(','), prefix='./crisis/crisis/2018/06/')
         g = user_graph(tweets)
-        save_matrix(g, sys.argv[3])
+        write_file(g, sys.argv[3])
     else:
         g = build_graph("./data/25crisis")
         print("Please enter either 'save','show', or 'print'")
