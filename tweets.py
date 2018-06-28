@@ -12,6 +12,7 @@ import os
 import sys
 import math
 import random
+from joblib import Parallel, delayed
 from afinn import Afinn
 import carmen
 
@@ -360,36 +361,54 @@ def get_sentiment(tweets):
 
     total = 0
     _min = 0
-    _max  = 0
+    _max = 0
+    pos = 0
+    neg = 0
+    neut = 0
+
+    temp = Parallel(n_jobs=-1)(delayed(
+        process_sentiment)(t) for t in tweets)
+    for x in temp:
+        total += x[0]
+        if x[1] < _min:
+            _min = x[1]
+        if x[2] > _max:
+            _max = x[2]
+        neg += x[3]
+        neut += x[4]
+        pos += x[5]
+
+    print("Sentiment Processed")  # Log
+
+    return(total, len(tweets), _min, _max, neg, neut, pos)
+
+
+def process_sentiment(tweet):
+    total = 0
+    _min = 0
+    _max = 0
     pos = 0
     neg = 0
     neut = 0
 
     afinn = Afinn(emoticons=True)
-    for t in tweets:
-        text = ""
-        sc = None
-        if t.get("extended_tweet") is None:
-            sc = afinn.score(t["text"])
-            text = t["text"]
-        else:
-            sc = afinn.score(t["extended_tweet"]["full_text"])
-            text = t["extended_tweet"]["full_text"]
+    text = ""
+    sc = afinn.score(tweet)
 
-        total += sc
+    total += sc
 
-        if sc < _min:
-            _min = sc
-        if sc > _max:
-            _max = sc
-        if sc < 0:
-            neg += 1
-        elif sc > 0:
-            pos += 1
-        elif sc == 0:
-            neut += 1
+    if sc < _min:
+        _min = sc
+    if sc > _max:
+        _max = sc
+    if sc < 0:
+        neg += 1
+    elif sc > 0:
+        pos += 1
+    elif sc == 0:
+        neut += 1
 
-    return(total, len(tweets), _min, _max, neg, neut, pos)
+    return(total, _min, _max, neg, neut, pos)
 
 
 def get_coordinates(country, bad_locations=[]):
@@ -522,7 +541,7 @@ def print_locations(locations):
         print()
 
 
-def get_tweets(dirs, prefix=None, unique=False):
+def get_tweets(dirs, prefix=None, key=None):
     '''
     A function to get all the tweets from a list of directories
 
@@ -533,9 +552,7 @@ def get_tweets(dirs, prefix=None, unique=False):
 
     files = list()  # the list of flume files
     ls = list()  # the list of tweets to return
-    seen = set()  # the set of already processed tweets
     num_filtered = 0  # the number of filtered tweets
-    num_repeat = 0  # the number of repeated tweets
 
     # add the prefix to the directory arguments
     if prefix is not None:
@@ -545,10 +562,29 @@ def get_tweets(dirs, prefix=None, unique=False):
     for d in dirs:
         print("Walking Directory: {0}".format(d))  # Log
         for dirp, dirn, fils in os.walk(d):
+            print(dirp)  # Log
+            print("Number of files: {0}".format(len(fils)))  # Log
             files.extend([os.path.join(dirp, f) for f in fils])
 
+    print("Found all files in {0}".format(dirs))  # Log
+    print("Number of files: {0}".format(len(files)))  # Log
+
     # process files
-    for fin in files:
+    temp = Parallel(n_jobs=-1)(delayed(
+        process_flume_file)(f,key=key) for f in files)
+    for x in temp:
+        ls += x[0]
+        num_filtered += x[1]
+
+    print("Files processed")  # Log
+
+    return (ls, num_filtered)
+
+
+def process_flume_file(fin, key=None):
+    ls = list()
+    num_filtered = 0
+    try:
         with open(fin, 'r') as f:
             for line in f:
                     # Get the tweet from the json
@@ -556,23 +592,26 @@ def get_tweets(dirs, prefix=None, unique=False):
                     tweet = json.loads(line)
                     if tweet["lang"] == "en":
                         # only process tweets in English
-                        if unique:
-                            _id = tweet["id_str"]
-                            if _id not in seen:
-                                # if tweet hasn't been seen before save it
-                                ls.append(tweet)
-                                seen.add(_id)
-                            else:
-                                # otherwise increment repeat number
-                                num_repeat += 1
-                        else:
-                            # if repeats are allowed just add it
+                        if key is None:
                             ls.append(tweet)
+                        elif key == 'text':
+                            if tweet.get("extended_tweet") is None:
+                                text = tweet["text"]
+                            else:
+                                text = tweet["extended_tweet"]["full_text"]
+                            ls.append(tweet[key])
                     else:
                         # the tweet isn't English. Filter it!
                         num_filtered += 1
-    return (ls, num_filtered, num_repeat)
+    except:
+        pass
+    return(ls, num_filtered)
 
+
+def get_users(dirs, prefix=None):
+    '''
+    A method to get a list of all the users in
+    '''
 
 def get_values(tweets, key):
     '''

@@ -23,8 +23,9 @@ if __name__ == '__main__':
 
     with open(out, 'w') as fout:
         for d in dirs:
-            tweets = get_tweets(d, unique=True, prefix=PATH)
-            total, sc, mn, mx, neg, neut, pos = get_sentiment(tweets[0])
-            fout.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\n".format(
-                d, total, tweets[1], sc, mn, mx, neg, neut, pos))
+            tweets = get_tweets([d], key='text', prefix=PATH)
+            sent, total, mn, mx, neg, neut, pos = get_sentiment(tweets[0])
+            fout.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n".format(
+                d, sent, mn, mx, neg, neut, pos, total, tweets[1]))
     fout.close()
+
