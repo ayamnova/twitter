@@ -363,6 +363,7 @@ def get_sentiment(tweets):
     _max  = 0
     pos = 0
     neg = 0
+    neut = 0
 
     afinn = Afinn(emoticons=True)
     for t in tweets:
@@ -383,10 +384,12 @@ def get_sentiment(tweets):
             _max = sc
         if sc < 0:
             neg += 1
-        if sc > 0:
+        elif sc > 0:
             pos += 1
+        elif sc == 0:
+            neut += 1
 
-    return(total, len(tweets), _min, _max, neg, pos)
+    return(total, len(tweets), _min, _max, neg, neut, pos)
 
 
 def get_coordinates(country, bad_locations=[]):
@@ -519,81 +522,55 @@ def print_locations(locations):
         print()
 
 
-def get_tweets_from_dirs(dirs, prefix=None, unique=False):
+def get_tweets(dirs, prefix=None, unique=False):
     '''
-    A method to get all the tweets for a list of directories
-
-    prefix: if all the folders in dirs is in the same folder, the prefix can be
-    passed to shorten the command
-
-    Returns a list of tweets
-    '''
-
-    if prefix is not None:
-        dirs = [os.path.join(prefix, d) for d in dirs]
-
-    print(dirs)
-
-    tweets = list()
-    for d in dirs:
-        tweets.extend(get_tweets(d, unique=unique)[0])
-
-    print("Retrieved all tweets in {0}".format(dirs))  # Log
-
-    return tweets
-
-
-def get_tweets(directory, unique=False):
-    '''
-    A function to get all the tweets from a directory
+    A function to get all the tweets from a list of directories
 
     directory: a directory with files that have tweets separated by lines
 
-    Returns a list of tweets
+    Returns a the list of tweets, the number filtered, the number repeated
     '''
 
-    print("Current Folder: {0}".format(directory))
-
+    files = list()  # the list of flume files
     ls = list()  # the list of tweets to return
     seen = set()  # the set of already processed tweets
     num_filtered = 0  # the number of filtered tweets
-    num_repeat = 0
+    num_repeat = 0  # the number of repeated tweets
 
-    # Get the tweet text fields from each file
-    for elem in os.listdir(directory):
-        # build the absolute path to the file
-        elem = os.path.join(directory, elem)
-        # get the tweets from it if it's a directory
-        if os.path.isdir(elem):
-            tw, flt, rpt = get_tweets(elem)
-            ls.extend(tw)
-            num_filtered += num_filtered
-            num_repeat += rpt
-        # if it's a file open it and read the tweets from it
-        elif os.path.isfile(elem):
-            # read the current file
-            try:
-                inp = open(elem, 'r', encoding="utf8")
-                for line in inp:
+    # add the prefix to the directory arguments
+    if prefix is not None:
+        dirs = [os.path.join(prefix, d) for d in dirs]
+
+    # find all the flume files and add them to a list of files
+    for d in dirs:
+        print("Walking Directory: {0}".format(d))  # Log
+        for dirp, dirn, fils in os.walk(d):
+            files.extend([os.path.join(dirp, f) for f in fils])
+
+    # process files
+    for fin in files:
+        with open(fin, 'r') as f:
+            for line in f:
                     # Get the tweet from the json
                     # and append it to ls if it is in English
                     tweet = json.loads(line)
                     if tweet["lang"] == "en":
+                        # only process tweets in English
                         if unique:
                             _id = tweet["id_str"]
                             if _id not in seen:
+                                # if tweet hasn't been seen before save it
                                 ls.append(tweet)
                                 seen.add(_id)
                             else:
+                                # otherwise increment repeat number
                                 num_repeat += 1
                         else:
+                            # if repeats are allowed just add it
                             ls.append(tweet)
                     else:
+                        # the tweet isn't English. Filter it!
                         num_filtered += 1
-            except:
-                print("Error reading from file")
-            finally:
-                inp.close()
     return (ls, num_filtered, num_repeat)
 
 

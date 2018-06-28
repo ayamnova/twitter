@@ -102,6 +102,7 @@ def build_matrix_from_file(fil, outfile):
             j = userslist.index(lines[0])
             k = userlist1.index(lines[2])
             Matrix[j][k] += 1
+            print(j,k)
 
     out = open(outfile, "w")
     for i in range(0,len(userslist)):
@@ -113,7 +114,7 @@ def build_matrix_from_file(fil, outfile):
 
 
 if __name__ == '__main__':
-      outfile = sys.argv[2]
-      dirs = [join(path, d) for d in sys.argv[1].split(',')]
-      save_users_to_file(dirs, outfile)
-      # build_matrix_from_file("usermatrix-usernames-6_11-6_17.txt", sys.argv[1])
+      # outfile = sys.argv[2]
+      # dirs = [join(path, d) for d in sys.argv[1].split(',')]
+      # save_users_to_file(dirs, outfile)
+      build_matrix_from_file("usermatrix-usernames-6_11-6_17.txt", sys.argv[1])
