@@ -1,3 +1,4 @@
+*.sync-conflict*
 crisis.conf
 access_tokens/**
 sources/**

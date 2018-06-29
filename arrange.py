@@ -4,26 +4,28 @@ import json
 import re
 
 organized = "crisis/crisis/2018"
-unorganized = "crisis/crisis/2018/05"
+unorganized = "crisis"
 pattern = re.compile(r'\s(\w{3})\s(\d{2})\s(\d{2})')
 
 
-for e in os.listdir(unorganized):
-    test = os.path.join(unorganized, e)
-    if os.path.isfile(os.path.join(test)):
+for dirp, dirn, fils in os.walk(unorganized):
+    for fil in fils:
         time = ""
+        fil = os.path.join(dirp, fil)
         try:
-            f = open(test, 'r', encoding="utf8")
+            f = open(fil, 'r', encoding="utf8")
             time = json.loads(f.readline())
             f.close()
             time = time["created_at"]
         except:
-            print("error")
+            continue
         stuff = re.search(pattern, time)
-        print(stuff)
         if stuff is not None:
             temp = ""
             month, day, hour = stuff.groups()
+            if day == "01":
+                print(fil)
+        '''
             if month == "May":
                 month = "05"
             elif month == "Jun":
@@ -45,3 +47,4 @@ for e in os.listdir(unorganized):
                 os.rename(test, os.path.join(temp, os.path.basename(test)))
             else:
                 print("skipping file {0}".format(os.path.basename(test)))
+        '''

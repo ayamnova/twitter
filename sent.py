@@ -11,12 +11,6 @@ from tweets import get_tweets, get_sentiment
 
 PATH = "./crisis/crisis/2018/"
 
-
-def save_to_file(day, total, number, minimum, maximum, neg, pos, fout):
-    fout.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n".format(
-        day, total, number, minimum, maximum, neg, pos))
-
-
 if __name__ == '__main__':
     out = sys.argv[2]
     dirs = sys.argv[1].split(',')

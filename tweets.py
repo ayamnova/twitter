@@ -547,7 +547,7 @@ def get_tweets(dirs, prefix=None, key=None):
 
     directory: a directory with files that have tweets separated by lines
 
-    Returns a the list of tweets, the number filtered, the number repeated
+    Returns a the list of tweets and the number filtered
     '''
 
     files = list()  # the list of flume files
