@@ -7,6 +7,7 @@ Author: Karsten Ladner
 Date: 6/1/2018
 '''
 import sys
+from os.path import join as pjoin
 import pickle
 
 import networkx as nx
@@ -18,7 +19,10 @@ from tweets import get_tweets, add_positions
 import new_grapher as grapher
 
 
-def build_graph(directory):
+PATH = "./crisis/crisis/2018/"
+
+
+def build_graph(tweets):
     '''
     A function to build a table based on retweets
 
@@ -32,10 +36,8 @@ def build_graph(directory):
 
     g = nx.DiGraph()  # the one graph to rule them all
 
-    # Get all the tweets in the directory
-    raw_tweets = get_tweets(directory)
     # Append position information
-    tweets = add_positions(raw_tweets)
+    tweets = add_positions(tweets)
 
     for tweet in tweets:
         try:
@@ -126,7 +128,7 @@ def display_graph(graph):
             colorscale='YIGnBu',
             reversescale=True,
             color=[],
-            size=10,
+            size=3,
             opacity=0.5,
             colorbar=dict(
                 thickness=15,
@@ -157,7 +159,7 @@ def display_graph(graph):
                 graph.nodes[node]["tweet"]["user"]["screen_name"][:10])
 
     fig = go.Figure(data=[edge_trace, node_trace], layout=go.Layout(dict(
-                title='<br>Network graph made with Python',
+                title='<br>Tweet-Retweet Relationships Across the Globe',
                 titlefont=dict(size=16),
                 showlegend=False,
                 geo=dict(
@@ -178,7 +180,7 @@ def display_graph(graph):
                 xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))))
 
-    plotly.offline.plot(fig, filename='d3-world-map')
+    plotly.offline.plot(fig, filename='./out/map.html')
 
 
 def user_graph(directory):
@@ -305,12 +307,10 @@ def print_user_graph(graph):
 
 if __name__ == '__main__':
     if sys.argv[1] == "save":
-        g = build_graph(sys.argv[2])
-        parts = sys.argv[2].strip(".").split("/")
-        fileparts = [
-                p + "-" for p in parts[1:] if p is not "crisis"]
-        filename = "".join(fileparts) + "data"
-        save_graph(g, filename)
+        dirs = [pjoin(PATH, d) for d in sys.argv[2].split(',')]
+        tweets = get_tweets(dirs)
+        g = build_graph(tweets[0])
+        save_graph(g, sys.argv[3])
     elif sys.argv[1] == "show":
         g = load_graph(sys.argv[2])
         display_graph(g)

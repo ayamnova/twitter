@@ -14,6 +14,7 @@ from tweets import get_tweets
 
 
 PATH = "./crisis/crisis/2018/"
+# PATH = "./data/"
 
 
 def get_country_distribution(tweets):
@@ -54,13 +55,15 @@ def get_country_distribution(tweets):
         # Add information to the dictionary
         if d.get(country) is None:
             # a new country was found
-            d[country] = {city: 1}
-        elif d[country].get(city) is None:
+            d[country] = [1, {city: 1}]
+        elif d[country][1].get(city) is None:
             # a new city was found
-            d[country][city] = 1
+            d[country][0] += 1
+            d[country][1][city] = 1
         else:
             # country and city were already added, increment value
-            d[country][city] += 1
+            d[country][0] += 1
+            d[country][1][city] += 1
 
     return(d, num_none)
 
@@ -75,12 +78,13 @@ if __name__ == '__main__':
     with open(sys.argv[2], 'w') as fout:
         fout.write("Total tweets\t{0}\tNon-English\t{1}\tNo location\t{2}\n".format(
             len(tweets), filt, none))
-        for country, cities in d.items():
-            total = 0
+        for country, info in sorted(d.items(), key=lambda x: x[1][0], reverse=True):
+            total = info[0]
             out = country + "\t"
-            for city, value in cities.items():
-                out += city + "\t" + str(value) + "\t"
+            cits = ""
+            for city, value in info[1].items():
+                cits += city + "\t" + str(value) + "\t"
                 total += value
-            out += "Total " + str(total) + "\n"
+            out += "Total " + "\t" + str(total) + "\t" + cits + "\n"
             fout.write(out)
     fout.close()
