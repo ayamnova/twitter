@@ -23,7 +23,7 @@ for dirp, dirn, fils in os.walk(unorganized):
         if stuff is not None:
             temp = ""
             month, day, hour = stuff.groups()
-            if day == "01":
+            if day == "29":
                 print(fil)
         '''
             if month == "May":
