@@ -10,12 +10,15 @@ Date: 5/29/2018
 import json
 import os
 import sys
+import pickle
 import math
 import random
 from joblib import Parallel, delayed
 from afinn import Afinn
 import carmen
 
+
+PATH = "./crisis/crisis/2018/"
 
 COUNTRY_COORDINATES = {
     "Andorra": (42.546245, 1.601554),
@@ -624,6 +627,7 @@ def get_users(dirs, prefix=None):
     A method to get a list of all the users in
     '''
 
+
 def get_values(tweets, key):
     '''
     A function to get the value for a particular field from a list of tweets
@@ -660,6 +664,20 @@ def parse_key_argument(inp):
     return inp.split(',')
 
 
+def save_to_file(values, fout):
+    f = open(fout, 'wb')
+    try:
+        pickle.dump(values, f)
+    finally:
+        f.close()
+
+
+def load_values_from_file(fin):
+    f = open(fin, 'rb')
+    values = pickle.load(f, encoding="utf8")
+    return(values)
+
+
 if __name__ == '__main__':
     directory = sys.argv[2]
     if sys.argv[1] == "con":
@@ -670,6 +688,14 @@ if __name__ == '__main__':
         get_sentiment(tweets[0])
     elif sys.argv[1] == "loc":
         get_locations(directory)
+    elif sys.argv[1] == "save":
+        dirs = sys.argv[3].split(',')
+        tweets = get_tweets(dirs, key=sys.argv[2], prefix=PATH)
+        save_to_file(tweets[0], sys.argv[4])
+    elif sys.argv[1] == "load":
+        v = load_values_from_file(sys.argv[2])
+        for val in v:
+            print(val)
     else:
         print("I didin't understand what method you are calling."
                 + "Please enter 'con', 'loc' or 'sent'")

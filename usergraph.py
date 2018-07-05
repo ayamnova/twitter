@@ -14,15 +14,14 @@ import sys
 from os.path import join
 import json
 import pickle
-import pandas as pd
 import numpy as np
 
 path = "./crisis/crisis/2018/06/"
 wordlist = []
 users = set()
 
-def save_users_to_file(dirs, fout):
 
+def save_users_to_file(dirs, fout):
     # Build the list of files
     files = list()
     for d in dirs:
@@ -70,6 +69,7 @@ def save_users_to_file(dirs, fout):
     out = open(fout, 'wb')
     pickle.dump(wordlist, out)
     out.close()
+
 
 def build_matrix_from_file(fil, outfile):
     fin = open(fil, 'rb')
