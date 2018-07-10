@@ -19,6 +19,7 @@ import carmen
 
 
 PATH = "./crisis/crisis/2018/"
+# PATH = "./data/"
 
 COUNTRY_COORDINATES = {
     "Andorra": (42.546245, 1.601554),
@@ -691,7 +692,12 @@ if __name__ == '__main__':
     elif sys.argv[1] == "save":
         dirs = sys.argv[3].split(',')
         tweets = get_tweets(dirs, key=sys.argv[2], prefix=PATH)
-        save_to_file(tweets[0], sys.argv[4])
+        v = {
+                'data': tweets[0], 
+                'num': len(tweets[0]),
+                'num_filtered': tweets[1]
+            }
+        save_to_file(v, sys.argv[4])
     elif sys.argv[1] == "load":
         v = load_values_from_file(sys.argv[2])
         for val in v:
