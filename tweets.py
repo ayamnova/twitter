@@ -697,5 +697,6 @@ if __name__ == '__main__':
         for val in v:
             print(val)
     else:
+        get_tweets(["./crisis/crisis/2018/05/31"])
         print("I didin't understand what method you are calling."
                 + "Please enter 'con', 'loc' or 'sent'")
