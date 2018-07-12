@@ -6,25 +6,34 @@ Date: 7/10/2018
 Author: Ruchishya
 '''
 
-import json
 import re
 import sys
 from nltk.corpus import stopwords
+import collections
 
 from tweets import load_values_from_file as load
 from tweets import save_to_file as save
 
 
+fout = sys.argv[1]
 sw = set(stopwords.words('english'))
 punctuation = re.compile(r'[\[?!"💀#*;+()@|0-9|\]]')
-anchor_list = ["syria", "syrian", "refugee", "assad", "isis", "chemical attack"]
+anchor_list = ["syria", "syrian", "refugee", "refugees", "assad", "isis"]
 out = {
         "syria": [],
         "syrian": [],
         "refugee": [],
+        "refugees": [],
         "assad": [],
-        "isis": [],
-        "chemical attack": []
+        "isis": []
+        }
+words = {
+        "syria": [],
+        "syrian": [],
+        "refugee": [],
+        "refugees": [],
+        "assad": [],
+        "isis": []
         }
 
 index = ['' for y in range(10)]
@@ -36,20 +45,24 @@ index = set()
 wordlist = []
 t_data = list()
 
-# fin = load('./out/text-06_01-06_10.dat')
-fin = load('text-test.dat')
-tweets = fin['data']
+fin = load('./out/text-06_01-06_10.dat')
+fin2 = load('./out/text-06_11-06_20.dat')
+fin3 = load('./out/text-06_21-06_30.dat')
+fin4 = load('./out/text-07_01-07_10.dat')
+# fin = load('text-test.dat')
+tweets = fin['data'] + fin2['data'] + fin3['data'] + fin4['data']
 
 print(len(tweets))
 
 for t in tweets:
-    clean_words = set()
+    # print(t)
+    clean_words = list()
     keywords = set()
-    prev = ""
     for huge in t.split():
         for word in huge.split("\'"):
             word = word.lower()
             word = word.replace(".", "")
+            word = word.rstrip("…")
             word = punctuation.sub("", word)
             word = word.strip()
             if (len(word.split()) > 1):
@@ -63,12 +76,9 @@ for t in tweets:
                                 l = 0
                             elif ("/" not in word and word.isalpha()):
                                 index.add(word[i])  # no duplicates
-                                clean_words.add(word[i])
+                                clean_words.append(word[i])
                                 if word[i] in anchor_list:
                                     keywords.add(word[i])
-                                elif word[i] is "attack" and prev is "chemical":
-                                    keywords.add("chemical attack")
-                                prev = word[i]
 
                     else:
                         if word[i] in sw:
@@ -79,12 +89,9 @@ for t in tweets:
                                 l = 0
                             elif ("/" not in word and word.isalpha()):
                                 index.add(word[i])  # no duplicates
-                                clean_words.add(word[i])
+                                clean_words.append(word[i])
                                 if word[i] in anchor_list:
                                     keywords.add(word[i])
-                                elif word[i] is "attack" and prev is "chemical":
-                                    keywords.add("chemical attack")
-                                prev = word[i]
             else:
                 if word not in wordcount:
                     if word in sw:
@@ -95,12 +102,9 @@ for t in tweets:
                             l = 0
                         elif ("/" not in word and word.isalpha()):
                             index.add(word)  # no duplicates
-                            clean_words.add(word)
+                            clean_words.append(word)
                             if word in anchor_list:
                                 keywords.add(word)
-                            elif word is "attack" and prev is "chemical":
-                                keywords.add("chemical attack")
-                            prev = word
                 else:
                     if word in sw:
                         u = 0
@@ -110,38 +114,48 @@ for t in tweets:
                             l = 0
                         elif ("/" not in word and word.isalpha()):
                             index.add(word)  # no duplicates
-                            clean_words.add(word[i])
+                            clean_words.append(word[i])
                             if word in anchor_list:
                                 keywords.add(word)
-                            elif word is "attack" and prev is "chemical":
-                                keywords.add("chemical attack")
-                            prev = word
-    dat = (keywords, clean_words, t)
-    t_data.append(dat)
+    # print(keywords, clean_words)
+    for keyword in keywords:
+        words[keyword].extend(clean_words)
 
+for keyword in anchor_list:
+    out[keyword] = collections.Counter(words[keyword])
+
+data = {
+        'data': out,
+        'num_filtered': fin['num_filtered'] + fin2['num_filtered'] \
+        + fin3['num_filtered'] + fin4['num_filtered']
+        }
+save(data, fout)
+
+for key in out:
+    print(key)
+    for w, v in sorted(out[key].items(), key=lambda x: x[1], reverse=True)[:20]:
+        print(w, v)
+    print()
+'''
 print(len(index))
 index = list(index)
 # print(index)
-newindex = [["" for x in range(len(anchor_list))] for y in range(len(index))]
+newindex = [[[] for x in range(len(anchor_list))] for y in range(len(index))]
 Matrix = [[0 for x in range(len(anchor_list))] for y in range(len(index))]
 
 # Figure out which tweets are associated with each anchor word and sign. word
 # then make a list that contains those related tweets
 for keywords, cleanwords, t in t_data:
-    print("NEW TWEET")
+    # print("NEW TWEET")
     # print("keywords: {0}\ncleanwords: {1}".format(keywords, cleanwords))
     for cleanword in cleanwords:
-        print("Cleanword: {0}".format(cleanword))
+        # print("Cleanword: {0}".format(cleanword))
         imp_word_index = index.index(cleanword)
         for keyword in keywords:
-            print(("Keyword: {0}".format(keyword)))
-            try:
-                newindex[imp_word_index][anchor_list.index(keyword)].append(t)
-            except AttributeError:
-                newindex[imp_word_index][anchor_list.index(keyword)] = [t]
+            # print(("Keyword: {0}".format(keyword)))
+            newindex[imp_word_index][anchor_list.index(keyword)].append(t)
 
 print("Finished indexing tweets")
-'''
 for j in range(0, len(index)):
     for k in range(0, len(anchor_list)):
         temp = []
@@ -149,14 +163,13 @@ for j in range(0, len(index)):
             if index[j] in t and anchor_list[k] in t:
                     temp.append(t)
         newindex[j][k] = temp
-'''
 for i in range(0, len(index)):
         # print(index[i], end="\t")
         # print(index[i], end="\t")
         for j in range(0, len(anchor_list)):
             # The number of tweets associated with each anchor word and sign. word
             # fills the matrix cell
-            Matrix[i][j] = len(newindex[i][j])
+            # Matrix[i][j] = len(newindex[i][j])
             dat = (index[i], len(newindex[i][j]))
             out[anchor_list[j]].append(dat)
             # print(Matrix[i][j], end="\t")
@@ -164,18 +177,23 @@ for i in range(0, len(index)):
 
 for keyword in out:
     print(keyword)
-    for word, value in sorted(out[keyword][:21], key=lambda x: x[1], reverse=True):
-        if value != 0:
+    for v in sorted(out[keyword][:50], key=lambda x: x[1], reverse=True):
+        print(v)
+     for word, value in sorted(out[keyword][:21], key=lambda x: x[1]):
+         if value != 0:
             print(word, value)
     print("\n\n")
-    '''
+
+print("cleanword: refugee")
+for num, col in enumerate(newindex[index.index("refugee")]):
+    print(anchor_list[num], len(col))
         if Matrix[i][3] > 1 \
                 and Matrix[i][0] == 0 \
                 and Matrix[i][1] == 0 \
                 and Matrix[i][2] == 0 \
                 and Matrix[i][4] == 0:
             print(index[i], Matrix[i][3])
-    '''
 
         # print('%s' % Matrix[i][j], end="\t")
     # print("\n")
+'''
