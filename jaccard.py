@@ -18,9 +18,9 @@ def jaccard(a, b):
     a: a set
     b: a set
 
-    Returns an int
+    Returns int
     '''
-
+    # Jaccard Index is intersection over union
     return(len(a & b) / len(a | b))
 
 
@@ -42,6 +42,6 @@ if __name__ == '__main__':
         if a is not None:
             j = jaccard(set(a['data']), set(b['data']))
             print("{0} - {1}: {2}".format(f1, f2, j))
-        # make a point at b
+        # make a point to b
         a = b
         f1 = f2

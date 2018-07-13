@@ -11,3 +11,4 @@ report.txt
 proc/**
 out/**
 .kdev4/**
+__pycache__/**

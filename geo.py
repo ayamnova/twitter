@@ -11,10 +11,7 @@ import sys
 import carmen
 from os.path import join as jn
 from tweets import get_tweets
-
-
-PATH = "./crisis/crisis/2018/"
-# PATH = "./data/"
+from constants import PATH, OUT
 
 
 def get_country_distribution(tweets):
@@ -69,15 +66,16 @@ def get_country_distribution(tweets):
 
 
 if __name__ == '__main__':
-
+    fout = jn(OUT, sys.argv[2])
     dirs = [jn(PATH, d) for d in sys.argv[1].split(',')]
     tweets, filt = get_tweets(dirs)
     d, none = get_country_distribution(tweets)
 
     # Write a tab-separated file with each country on a different line
-    with open(sys.argv[2], 'w') as fout:
+    with open(fout, 'w') as fout:
         fout.write("Total tweets\t{0}\tNon-English\t{1}\tNo location\t{2}\n".format(
             len(tweets), filt, none))
+        # sort the countries by the totals
         for country, info in sorted(d.items(), key=lambda x: x[1][0], reverse=True):
             total = info[0]
             out = country + "\t"
