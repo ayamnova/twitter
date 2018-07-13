@@ -8,8 +8,7 @@ Date: 6/25/2018
 
 import sys
 from tweets import get_tweets, get_sentiment
-
-PATH = "./crisis/crisis/2018/"
+from constants import PATH
 
 if __name__ == '__main__':
     out = sys.argv[2]

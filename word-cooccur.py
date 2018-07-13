@@ -6,6 +6,7 @@ Date: 7/10/2018
 Author: Ruchishya
 '''
 
+from os.path import join as jn
 import re
 import sys
 from nltk.corpus import stopwords
@@ -14,11 +15,14 @@ import collections
 from tweets import load_values_from_file as load
 from tweets import save_to_file as save
 
+from constants import OUT, PROC
 
-fout = sys.argv[1]
+
+fout = jn(OUT, sys.argv[1])
 sw = set(stopwords.words('english'))
 punctuation = re.compile(r'[\[?!"💀#*;+()@|0-9|\]]')
 anchor_list = ["syria", "syrian", "refugee", "refugees", "assad", "isis"]
+
 out = {
         "syria": [],
         "syrian": [],
@@ -45,12 +49,11 @@ index = set()
 wordlist = []
 t_data = list()
 
-fin = load('./out/text-06_01-06_10.dat')
-fin2 = load('./out/text-06_11-06_20.dat')
-fin3 = load('./out/text-06_21-06_30.dat')
-fin4 = load('./out/text-07_01-07_10.dat')
-# fin = load('text-test.dat')
-tweets = fin['data'] + fin2['data'] + fin3['data'] + fin4['data']
+fin = load(jn(PROC, 'text-06_01-06_10.dat'))
+fin2 = load(jn(PROC, 'text-06_11-06_20.dat'))
+fin3 = load(jn(PROC, 'text-06_21-06_30.dat'))
+# fin4 = load('./out/text-07_01-07_10.dat')
+tweets = fin['data'] + fin2['data'] + fin3['data']
 
 print(len(tweets))
 
@@ -117,17 +120,21 @@ for t in tweets:
                             clean_words.append(word[i])
                             if word in anchor_list:
                                 keywords.add(word)
-    # print(keywords, clean_words)
+
     for keyword in keywords:
         words[keyword].extend(clean_words)
+
+print("Finished building list of clean words")
 
 for keyword in anchor_list:
     out[keyword] = collections.Counter(words[keyword])
 
+print("Finished counting frequencies")
+
 data = {
         'data': out,
         'num_filtered': fin['num_filtered'] + fin2['num_filtered'] \
-        + fin3['num_filtered'] + fin4['num_filtered']
+        + fin3['num_filtered']
         }
 save(data, fout)
 

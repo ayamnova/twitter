@@ -16,10 +16,8 @@ import random
 from joblib import Parallel, delayed
 from afinn import Afinn
 import carmen
+from constants import PATH
 
-
-PATH = "./crisis/crisis/2018/"
-# PATH = "./data/"
 
 COUNTRY_COORDINATES = {
     "Andorra": (42.546245, 1.601554),
@@ -383,6 +381,7 @@ def get_sentiment(tweets):
 
     temp = Parallel(n_jobs=-1)(delayed(
         process_sentiment)(t) for t in tweets)
+
     for x in temp:
         total += x[0]
         if x[1] < _min:
@@ -407,7 +406,6 @@ def process_sentiment(tweet):
     neut = 0
 
     afinn = Afinn(emoticons=True)
-    text = ""
     sc = afinn.score(tweet)
 
     total += sc
@@ -614,7 +612,11 @@ def process_flume_file(fin, key=None):
                                 text = tweet["text"]
                             else:
                                 text = tweet["extended_tweet"]["full_text"]
-                            ls.append(tweet[key])
+                            ls.append(text)
+                        elif key == 'names':
+                            if tweet.get('extended_tweet') is not None:
+                                ls.append(tweet['retweeted_status']['user']['screen_name'])
+                            ls.append(tweet['user']['screen_name'])
                     else:
                         # the tweet isn't English. Filter it!
                         num_filtered += 1
@@ -699,9 +701,9 @@ if __name__ == '__main__':
             }
         save_to_file(v, sys.argv[4])
     elif sys.argv[1] == "load":
-        v = load_values_from_file(sys.argv[2])
-        for val in v:
-            print(val)
+        val = load_values_from_file(sys.argv[2])
+        for k, v in val.items():
+            print(k, v)
     else:
         get_tweets(["./crisis/crisis/2018/05/31"])
         print("I didin't understand what method you are calling."
