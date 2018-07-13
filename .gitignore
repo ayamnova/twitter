@@ -10,3 +10,4 @@ connect.txt
 report.txt
 proc/**
 out/**
+.kdev4/**
