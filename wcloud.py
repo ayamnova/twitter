@@ -6,13 +6,11 @@ wordcloud package
 Author: Karsten Ladner
 Date: 7/12/2018
 '''
+
 import sys
 from os.path import join as jn
-
 import wordcloud
-
 from tweets import load_values_from_file as load
-
 from constants import PROC, OUT
 
 freq = load(jn(PROC, sys.argv[1]))
