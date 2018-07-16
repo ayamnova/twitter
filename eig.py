@@ -14,6 +14,7 @@ import pickle
 
 from constants import *
 
+
 def first_run(raw, temp, eig):
     with open(jn(PROC, raw), 'r') as fin:
         with open(jn(PROC, temp), 'wb') as fout:
@@ -21,10 +22,7 @@ def first_run(raw, temp, eig):
             for row in fin:
                 # Calculate the scalar
                 num1 = row[:row.index("\t")]
-                if top[0] != 0:
-                    mult = float(num1) / top[0]
-                else:
-                    mult = float(num1)
+                mult = float(num1) / top[0]
 
                 # Scale the top row by the factor just calculated
                 subt = [mult * c for c in top]
@@ -51,26 +49,42 @@ def loadall(filename):
             except EOFError:
                 break
 
+
 def run(inp, temp, eig):
+    '''
+    A method to calculate the eigenvalue for one row
+    Reads from an input pickle file that has pickled a list of floats and will
+    continue to run until there are no more rows to process from the pickled
+    file
+
+    inp (str): the input file
+    temp (str): the temp file to save the modified rows to
+    eig (str): the file where the eigenvalue should be saved
+    '''
+    # Load the pickle file as a generator
     rows = loadall(jn(PROC, inp))
+    # Open the temp file for writing
     with open(jn(PROC, temp), 'wb') as fout:
         try:
+            # Try to get the first row from the pickle
             top = rows.__next__()
             # print("Top: {0}".format(top))
         except StopIteration:
+            # The pickle is empty. We're done
             print("Stopped")
             return(0)
         for row in rows:
-            # print("Row: {0}".format(row))
+            # Iterate through the rest of the rows and transform them before
+            # saving them to the temp file
+
+            # Figure out what the scalar value is
             num1 = row[0]
-            if top[0] != 0:
-                mult = num1 / top[0]
-            else:
-                mult = num1
+            mult = num1 / top[0]
             subt = [mult * c for c in top]
             row = [r - t for r, t in zip(row, subt)]
 
             pickle.dump(row[1:], fout)
+            # print(row[1:10])
 
         print(top[0])
         with open(jn(PROC, eig), 'a') as eout:
@@ -81,9 +95,13 @@ def run(inp, temp, eig):
 
 if __name__ == '__main__':
     start = time.time()
-    first_run(sys.argv[1], "tempmat.tmp", "eig.txt")
+    # The first run has to be different to account for the different kinds
+    # of input
+    first_run('big', "tempmat.tmp", "eig.txt")
+    # Make the temp file the one to read from
     os.rename(jn(PROC, "tempmat.tmp"), jn(PROC, "tempmat"))
     count = 0
+    # Keep on running until run returns a 0
     while run("tempmat", "tempmat.tmp", "eig.txt") != 0:
         os.rename(jn(PROC, "tempmat.tmp"), jn(PROC, "tempmat"))
         if count % 1000 == 0 and count != 0:
