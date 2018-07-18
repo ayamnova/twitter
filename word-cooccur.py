@@ -6,6 +6,7 @@ Date: 7/10/2018
 Author: Ruchishya
 '''
 
+import os.path
 from os.path import join as jn
 import re
 import sys
@@ -49,13 +50,13 @@ index = set()
 wordlist = []
 t_data = list()
 
-fin = load(jn(PROC, 'text-06_01-06_10.dat'))
-fin2 = load(jn(PROC, 'text-06_11-06_20.dat'))
-fin3 = load(jn(PROC, 'text-06_21-06_30.dat'))
-# fin4 = load('./out/text-07_01-07_10.dat')
-tweets = fin['data'] + fin2['data'] + fin3['data']
+fins = [load(jn(PROC, f)) for f in os.listdir(PROC) if "text" in f]
 
-print(len(tweets))
+tweets = list()
+num_filtered = 0
+for f in fins:
+    tweets.extend(f['data'])
+    num_filtered += f['num_filtered']
 
 for t in tweets:
     # print(t)
@@ -133,8 +134,7 @@ print("Finished counting frequencies")
 
 data = {
         'data': out,
-        'num_filtered': fin['num_filtered'] + fin2['num_filtered'] \
-        + fin3['num_filtered']
+        'num_filtered': num_filtered
         }
 save(data, fout)
 
