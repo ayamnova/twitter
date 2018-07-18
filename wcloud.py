@@ -15,6 +15,12 @@ from constants import PROC, OUT
 
 freq = load(jn(PROC, sys.argv[1]))
 for keyword, counts in freq['data'].items():
-    wc = wordcloud.WordCloud(height=800, width=1600, scale=1.0, max_words=250)
+    wc = wordcloud.WordCloud(
+            height=800,
+            width=1600,
+            scale=1.0,
+            max_words=250,
+            background_color="white"
+            )
     wc.generate_from_frequencies(counts)
     wc.to_file(jn(OUT, keyword + '.png'))
