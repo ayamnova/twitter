@@ -9,31 +9,62 @@ Date: 7/16/2018
 import os
 import sys
 import time
+from joblib import Parallel, delayed
 from os.path import join as jn
 import pickle
 
 from constants import *
 
 
+def first_transform(row, top):
+    num1 = float(row[:row.index("\t")])
+    if num1 == 0:
+        return [float(r) for r in row.split("\t") if r is not "\n"]
+    else:
+        mult = float(num1) / top[0]
+
+        # Scale the top row by the factor just calculated
+        print("Top row scaled")
+        subt = [c * mult for c in top]
+        # [mult * c for c in top]
+
+        # Transform the row by the scaled top row
+        print("Row transformed")
+        res = [float(r) - t for r, t in zip(row.split("\t"), subt)]
+        return res
+
+
 def first_run(raw, temp, eig):
     with open(jn(PROC, raw), 'r') as fin:
         with open(jn(PROC, temp), 'wb') as fout:
             top = [float(c) for c in fin.readline().split("\t") if c is not "\n"]
+            start = time.time()
+            res = Parallel(n_jobs = -1)(delayed(first_transform)(r, top) for r in fin)
+            stop = time.time()
+            print(stop - start)
+            '''
             for row in fin:
                 # Calculate the scalar
                 num1 = row[:row.index("\t")]
                 mult = float(num1) / top[0]
 
                 # Scale the top row by the factor just calculated
-                subt = [mult * c for c in top]
+                print("Top row scaled")
+                subt = Parallel(n_jobs = -1)(delayed(multiply)(mult, c) for c in top)
+                # [mult * c for c in top]
 
                 # Transform the row by the scaled top row
-                row = [float(r) - t for r, t in zip(row.split("\t"), subt)]
+                print("Row transformed")
+                res = Parallel(n_jobs = -1)(delayed(subtract)(float(r), t) for r, t in zip(row.split("\t"), subt))
+                # row = [float(r) - t for r, t in zip(row.split("\t"), subt)]
 
                 # print("Dumping {0}".format(row[1:]))
-                pickle.dump(row[1:], fout)
+                # pickle.dump(row[1:], fout)
+            '''
+            for r in res:
+                pickle.dump(r[1:], fout)
 
-            print(top[0])
+            print("Finished first run! Time: {0}".format(time.time() - start))
             with open(PROC + eig, 'w') as eout:
                 eout.write("\t{0}".format(top[0]))
                 eout.close()
@@ -48,6 +79,24 @@ def loadall(filename):
                 yield pickle.load(f)
             except EOFError:
                 break
+
+
+def transform(row, top):
+    num1 = row[0]
+    if num1 == 0:
+        return row
+    else:
+        mult = num1 / top[0]
+
+        # Scale the top row by the factor just calculated
+        print("Top row scaled")
+        subt = [c * mult for c in top]
+        # [mult * c for c in top]
+
+        # Transform the row by the scaled top row
+        print("Row transformed")
+        res = [r - t for r, t in zip(row, subt)]
+        return res
 
 
 def run(inp, temp, eig):
@@ -73,6 +122,8 @@ def run(inp, temp, eig):
             # The pickle is empty. We're done
             print("Stopped")
             return(0)
+        res = Parallel(n_jobs = -1)(delayed(transform)(r, top) for r in rows)
+        '''
         for row in rows:
             # Iterate through the rest of the rows and transform them before
             # saving them to the temp file
@@ -80,13 +131,18 @@ def run(inp, temp, eig):
             # Figure out what the scalar value is
             num1 = row[0]
             mult = num1 / top[0]
-            subt = [mult * c for c in top]
-            row = [r - t for r, t in zip(row, subt)]
-
-            pickle.dump(row[1:], fout)
+            print("Top row scaled")
+            subt = Parallel(n_jobs = -1)(delayed(multiply)(mult, c) for c in top)
+            # subt = [mult * c for c in top]
+            # row = [r - t for r, t in zip(row, subt)]
+            print("Row Transformed")
+            res = Parallel(n_jobs = -1)(delayed(subtract)(float(r), t) for r, t in zip(row.split("\t"), subt))
+            # pickle.dump(row[1:], fout)
             # print(row[1:10])
-
-        print(top[0])
+            pickle.dump(res[1:], fout)
+        '''
+        pickle.dump(res[1:], fout)
+        print("Finished one run! Time: {0}".format(time.time() - start))
         with open(jn(PROC, eig), 'a') as eout:
             eout.write("\t{0}".format(top[0]))
             eout.close()
