@@ -8,21 +8,22 @@ from constants import PATH, OUT, PROC
 
 
 if __name__ == '__main__':
-    dirs = [PATH]
+    dirs = [d for d in sys.argv[1].split(',') if d is not ""]
+    fout = sys.argv[2]
     d = {
             "United States": [],
             "United Kingdom": [],
             "India": [],
             "France": []
             }
-    tweets, filt = get_tweets(dirs)
+    tw, filt = get_tweets(dirs, prefix=PATH)
 
     # initialize the location engine
     r = carmen.get_resolver()
     r.load_locations()
 
     # look through every tweet and see if it's in a country of interest
-    for t in tweets:
+    for t in tw:
         try:
             # try to find a location
             loc = r.resolve_tweet(t)[1]
@@ -38,5 +39,5 @@ if __name__ == '__main__':
             continue
     # save each country into a separate file
     for c in d:
-        save({'data': d[c]}, jn(PROC, c + ".dat"))
+        save({'data': d[c]}, jn(PROC, c + "-" + fout + ".dat"))
 
