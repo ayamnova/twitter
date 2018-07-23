@@ -19,7 +19,8 @@ from tweets import save_to_file as save
 from constants import OUT, PROC
 
 
-fout = jn(OUT, sys.argv[1])
+fout = jn(PROC, sys.argv[2])
+key = sys.argv[1]
 sw = set(stopwords.words('english'))
 punctuation = re.compile(r'[\[?!"💀#*;+()@|0-9|\]]')
 anchor_list = ["syria", "syrian", "refugee", "refugees", "assad", "isis"]
@@ -50,13 +51,13 @@ index = set()
 wordlist = []
 t_data = list()
 
-fins = [load(jn(PROC, f)) for f in os.listdir(PROC) if "text" in f]
+fins = [load(jn(PROC, f)) for f in os.listdir(PROC) if key in f]
 
 tweets = list()
 num_filtered = 0
 for f in fins:
     tweets.extend(f['data'])
-    num_filtered += f['num_filtered']
+    # num_filtered += f['num_filtered']
 
 for t in tweets:
     # print(t)
@@ -132,9 +133,14 @@ for keyword in anchor_list:
 
 print("Finished counting frequencies")
 
+# data for filtered 
+#data = {
+        #'data': out,
+        #'num_filtered': num_filtered
+        #}
+
 data = {
         'data': out,
-        'num_filtered': num_filtered
         }
 save(data, fout)
 
