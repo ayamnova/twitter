@@ -20,6 +20,7 @@ usize = [go.Scattergeo(
             line=dict(width=0)
             )
         )]
+# Append hover text
 usize[0]['text'] = list(zip(df['Country'], df['Users']))
 sent = [ dict(
         type = 'choropleth',
@@ -39,48 +40,8 @@ sent = [ dict(
         colorbar = dict(
             title = 'Postiive Country Tweets <br>Divided by Total Tweets')
       ) ]
+# Append hover text
 sent[0]['text'] = list(zip(df['Country'], df['Sentiment']))
-
-
-'''
-for i in range(6,10)[::-1]:
-    cases.append(go.Scattergeo(
-        lon = df[ df['Month'] == i ]['Lon'], #-(max(range(6,10))-i),
-        lat = df[ df['Month'] == i ]['Lat'],
-        text = df[ df['Month'] == i ]['Value'],
-        name = months[i],
-        marker = dict(
-            size = df[ df['Month'] == i ]['Value']/50,
-            color = colors[i-6],
-            line = dict(width = 0)
-        ),
-    ) )
-cases[0]['text'] = df[ df['Month'] == 9 ]['Value'].map('{:.0f}'.format).astype(str)+' '+\
-    df[ df['Month'] == 9 ]['Country']
-cases[0]['mode'] = 'markers+text'
-cases[0]['textposition'] = 'bottom center'
-
-inset = [
-    go.Choropleth(
-        locationmode = 'country names',
-        locations = df[ df['Month'] == 9 ]['Country'],
-        z = df[ df['Month'] == 9 ]['Value'],
-        text = df[ df['Month'] == 9 ]['Country'],
-        colorscale = [[0,'rgb(0, 0, 0)'],[1,'rgb(0, 0, 0)']],
-        autocolorscale = False,
-        showscale = False,
-        geo = 'geo2'
-    ),
-    go.Scattergeo(
-        lon = [21.0936],
-        lat = [7.1881],
-        text = ['Africa'],
-        mode = 'text',
-        showlegend = False,
-        geo = 'geo2'
-    )
-]
-'''
 
 layout = go.Layout(
     geo = dict(
