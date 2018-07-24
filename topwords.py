@@ -127,5 +127,5 @@ if __name__ == '__main__':
         save_count(count, filt, out)
         top(count, 20)
     elif action == 'load':
-        wc = load_count(sys.argv[2])
-        top(wc['data'], 20)
+        wc = load_count(jn(OUT, sys.argv[2]))
+        top(wc['data'], int(sys.argv[3]))
