@@ -936,8 +936,8 @@ if __name__ == '__main__':
         save_to_file(v, sys.argv[4])
     elif sys.argv[1] == "load":
         val = load_values_from_file(sys.argv[2])
-        for k, v in val.items():
-            print(k, v)
+        for v in val['data']:
+            print(v)
     else:
         get_tweets(["./crisis/crisis/2018/05/31"])
         print("I didin't understand what method you are calling."
