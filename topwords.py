@@ -1,17 +1,22 @@
 '''
 A python script to find the most frequent words appearing in a file
 
+Modified: 7/24/2018
 Author: Karsten Ladner
 Date: 7/03/2018
 '''
 
+import os
+from os.path import join as jn
 import collections
-from nltk.corpus import stopwords 
+from nltk.corpus import stopwords
 from afinn import Afinn
 import sys
 
 from tweets import load_values_from_file as load
 from tweets import save_to_file as save
+
+from constants import PROC, OUT
 
 
 file_in = "25text.out"
@@ -21,11 +26,11 @@ sw = set(stopwords.words('english'))
 sw.add("rt")
 
 
-def count_words(text):
+def count_words(tweets):
     '''
-    A method to count all the important words in a text file
+    A method to count all the important words in a tweets file
 
-    text: a list of of strings
+    tweets: a list of of strings
 
     Returns: a dictionary with word-frequency pairs and the count of filtered
     words
@@ -34,20 +39,20 @@ def count_words(text):
     filtered = 0  # the number of filtered words
     ls = list()  # the list of words
 
-    # read through every line in the list
-    for line in txt:
+    # read through every tweet in the list
+    for t in tweets:
         try:
             # split into words
-            for word in line.split(" "):
+            for word in t.split(" "):
                 # clean the word
                 word = word.strip().lower().rstrip("…")
 
                 # check if it is a valid word
                 if word not in sw \
-                and "http" not in word \
-                and "@" not in word \
-                and word.isalpha() \
-                and len(word) > 2:
+                    and "http" not in word \
+                    and "@" not in word \
+                    and word.isalpha() \
+                    and len(word) > 2:
                     # get rid of the hashtags
                     # because a split with a # will lead to returning ''
                     # must loop through every item returned
@@ -100,17 +105,26 @@ def top(count, num):
     '''
 
     afinn = Afinn()
+    print("Word,Count,Sentiment")
     for w, c in count.most_common(num):
         sc = afinn.score(w)
-        print("{0}\t{1}\t{2}".format(w, c, sc))
+        print("{0},{1},{2}".format(w, c, sc))
 
 
 if __name__ == '__main__':
     action = sys.argv[1]
     if action == 'save':
-        txt = load(sys.argv[2])
-        (count, filt) = count_words(txt)
-        save_count(count, filt, sys.argv[3])
+        out = jn(OUT, sys.argv[2])
+        # load all the text from the list of .dat text files in the proc dir
+        fils = [load(jn(PROC, f)) for f in os.listdir(PROC) if "text" in f]
+        # make a list of all the text
+        dat = list()
+        for f in fils:
+            dat.extend(f["data"])
+        # count the words
+        (count, filt) = count_words(dat)
+        # save the counts to a file for later
+        save_count(count, filt, out)
         top(count, 20)
     elif action == 'load':
         wc = load_count(sys.argv[2])
