@@ -14,7 +14,7 @@ import numpy as np
 from os.path import join as jn
 import wordcloud
 from tweets import load_values_from_file as load
-from constants import PROC, OUT
+from config import PROC, OUT
 
 keys = ["chemical", "isis", "isil", "assad", "syria", "syrian", "refugee"]
 

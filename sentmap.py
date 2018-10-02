@@ -3,7 +3,7 @@ import plotly
 import sys
 import pandas as pd
 from os.path import join as jn
-from constants import OUT, PROC
+from config import OUT, PROC
 
 df = pd.read_csv(jn(OUT, sys.argv[1]))
 

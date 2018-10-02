@@ -9,7 +9,7 @@ Date: 6/25/2018
 import sys
 from os.path import join as jn
 from tweets import get_tweets, get_sentiment
-from constants import PATH, OUT
+from config import PATH, OUT
 
 if __name__ == '__main__':
     out = jn(OUT, sys.argv[2])

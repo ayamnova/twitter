@@ -13,7 +13,7 @@ from joblib import Parallel, delayed
 from os.path import join as jn
 import pickle
 
-from constants import *
+from config import *
 
 
 def first_transform(row, top):

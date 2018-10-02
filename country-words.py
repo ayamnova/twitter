@@ -4,7 +4,7 @@ from afinn import Afinn
 from os.path import join as jn
 from tweets import get_tweets
 from tweets import save_to_file as save 
-from constants import PATH, OUT, PROC
+from config import PATH, OUT, PROC
 
 
 if __name__ == '__main__':

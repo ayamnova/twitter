@@ -9,7 +9,7 @@ Date: 7/12/2018
 import sys
 from os.path import join as jn
 from tweets import get_tweets
-from constants import PROC, OUT, PATH
+from config import PROC, OUT, PATH
 
 
 if __name__ == '__main__':

@@ -16,7 +16,7 @@ import collections
 from tweets import load_values_from_file as load
 from tweets import save_to_file as save
 
-from constants import OUT, PROC
+from config import OUT, PROC
 
 
 fout = jn(PROC, sys.argv[2])

@@ -16,7 +16,7 @@ import sys
 from tweets import load_values_from_file as load
 from tweets import save_to_file as save
 
-from constants import PROC, OUT
+from config import PROC, OUT
 
 
 file_in = "25text.out"

@@ -5,7 +5,7 @@ A script to save the usernames of the users for each day
 
 import sys
 from tweets import get_tweets, save_to_file as save
-from constants import PATH
+from config import PATH
 
 
 if __name__ == '__main__':

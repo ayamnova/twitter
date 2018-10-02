@@ -16,7 +16,7 @@ from tweets import get_tweets, get_sentiment
 from tweets import save_to_file as save
 from tweets import load_values_from_file as load
 
-from constants import PATH, OUT, PROC
+from config import PATH, OUT, PROC
 
 # Constants
 
