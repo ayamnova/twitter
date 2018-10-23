@@ -19,63 +19,6 @@ import carmen
 from config import PATH
 
 
-
-def get_relationship(directory):
-    '''
-    A function to build a table based on retweets
-
-    directory: the directory with all the tweets in it
-
-    Return: a dictionary with Tweet ID's for keys that map to a tuple of the
-    form (username, relationship)
-
-    relationship is an integer (1-2). 1 = author, 2 = retweeter
-    '''
-
-    rel = dict()  # the dictionary to return
-
-    # Get all the tweets in the directory
-    tweets = get_tweets(directory)
-
-    for tweet in tweets:
-        try:
-            # treat it first like a retweet
-
-            # get the screen name of the retweeter
-            screen_name = tweet["user"]["screen_name"]
-
-            # get the ID of the original tweet
-            original = tweet["retweeted_status"]["id_str"]
-
-            if original not in rel.keys():
-                # add the original tweet to the dictionary
-                add_tweet(rel, tweet["retweeted_status"])
-
-            # add the retweet information
-            data = (screen_name, 2)
-            rel[original].append(data)
-
-        except KeyError:
-            # not a retweet because the retweeted status has not been found!
-
-            # add the tweet to the relationship dictionary
-            add_tweet(rel, tweet)
-
-    return rel
-
-
-def add_tweet(rel, tweet):
-    '''
-    A function to add a tweet to the relationship dictionary
-
-    rel: the relationship dictionary
-    tweet: the tweet to add
-    '''
-    rel[tweet["id_str"]] = list()
-    data = (tweet["user"]["screen_name"], 1)
-    rel[tweet["id_str"]].append(data)
-
-
 def consolidate(directory, key, outfile=None):
     '''
     A function to consolidate all the values in all the tweets in a given
