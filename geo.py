@@ -12,7 +12,8 @@ import sys
 import carmen
 from afinn import Afinn
 from os.path import join as jn
-from tweets import get_tweets, get_sentiment
+from tweets import get_tweets
+from sent import get_sentiment
 from tweets import save_to_file as save
 from tweets import load_values_from_file as load
 
