@@ -243,12 +243,6 @@ def consolidate(directory, key, outfile=None):
     return(values)
 
 
-def get_users(dirs, prefix=None):
-    '''
-    A method to get a list of all the users in
-    '''
-
-
 def get_values(tweets, key):
     '''
     A function to get the value for a particular field from a list of tweets
