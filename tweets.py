@@ -304,9 +304,6 @@ if __name__ == '__main__':
     if sys.argv[1] == "con":
         key = parse_key_argument(sys.argv[3])
         consolidate(directory, key)
-    elif sys.argv[1] == "sent":
-        tweets = get_tweets(directory)
-        get_sentiment(tweets[0])
     elif sys.argv[1] == "loc":
         get_locations(directory)
     elif sys.argv[1] == "save":
