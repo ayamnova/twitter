@@ -19,14 +19,6 @@ import carmen
 from config import PATH
 
 
-
-def get_text(tweet):
-    if tweet.get("extended_tweet") is None:
-        return(tweet["text"])
-    else:
-        return(tweet["extended_tweet"]["full_text"])
-
-
 def get_sentiment(tweets):
     '''
     A method to get the sentimentality of all the tweets in a directory
@@ -257,27 +249,6 @@ def get_tweets(dirs, prefix=None, key=None):
 
     return (ls, num_filtered)
 
-def consolidate(directory, key, outfile=None):
-    '''Consolidates the values of a specific field from a directory of tweets
-
-    A wrapper function for get_tweets and get_values to consolidate all the 
-    values in all the tweets in a given directory. 
-
-    Args:
-        directory: (list) a list of directories to search for tweets
-        key: (list) a list of strings with each subsequent string matching a 
-            JSON field
-
-    Returns:
-        list of values from that given field
-    '''
-
-    # get all the tweets from directory
-    tweets, filt_num = get_tweets(directory)
-    # get all the values from the tweets
-    values = get_values(tweets, key)
-
-    return(values)
 
 def process_flume_file(fin, key=None):
     ls = list()
@@ -308,6 +279,29 @@ def process_flume_file(fin, key=None):
     except:
         pass
     return(ls, num_filtered)
+
+
+def consolidate(directory, key, outfile=None):
+    '''Consolidates the values of a specific field from a directory of tweets
+
+    A wrapper function for get_tweets and get_values to consolidate all the 
+    values in all the tweets in a given directory. 
+
+    Args:
+        directory: (list) a list of directories to search for tweets
+        key: (list) a list of strings with each subsequent string matching a 
+            JSON field
+
+    Returns:
+        list of values from that given field
+    '''
+
+    # get all the tweets from directory
+    tweets, filt_num = get_tweets(directory)
+    # get all the values from the tweets
+    values = get_values(tweets, key)
+
+    return(values)
 
 
 def get_users(dirs, prefix=None):
