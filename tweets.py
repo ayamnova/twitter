@@ -19,34 +19,6 @@ import carmen
 from config import PATH
 
 
-def consolidate(directory, key, outfile=None):
-    '''
-    A function to consolidate all the values in all the tweets in a given
-    directory and save that data to a new file
-
-    If no output file is specified, it will print to the screen
-
-    directory: directory to run in
-    key: the field to get the value from
-    outfile: output file
-    '''
-
-    # get all the tweets from directory
-    tweets = get_tweets(directory)
-    # get all the values from the tweets
-    values = get_values(tweets, key)
-
-    # output values
-    if outfile is None:
-        for v in values:
-            print(v)
-    else:
-        # Create the out file
-        out = open(outfile, 'w', encoding="utf8")
-        # write the values returned after converting each value to a string
-        out.writelines([str(v) + "\n" for v in values])
-
-        out.close()
 
 def get_text(tweet):
     if tweet.get("extended_tweet") is None:
@@ -285,6 +257,27 @@ def get_tweets(dirs, prefix=None, key=None):
 
     return (ls, num_filtered)
 
+def consolidate(directory, key, outfile=None):
+    '''Consolidates the values of a specific field from a directory of tweets
+
+    A wrapper function for get_tweets and get_values to consolidate all the 
+    values in all the tweets in a given directory. 
+
+    Args:
+        directory: (list) a list of directories to search for tweets
+        key: (list) a list of strings with each subsequent string matching a 
+            JSON field
+
+    Returns:
+        list of values from that given field
+    '''
+
+    # get all the tweets from directory
+    tweets, filt_num = get_tweets(directory)
+    # get all the values from the tweets
+    values = get_values(tweets, key)
+
+    return(values)
 
 def process_flume_file(fin, key=None):
     ls = list()
