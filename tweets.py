@@ -89,12 +89,12 @@ def process_flume_file(fin, key=None):
 def consolidate(directory, key, outfile=None):
     '''Consolidates the values of a specific field from a directory of tweets
 
-    A wrapper function for get_tweets and get_values to consolidate all the 
-    values in all the tweets in a given directory. 
+    A wrapper function for get_tweets and get_values to consolidate all the
+    values in all the tweets in a given directory.
 
     Args:
         directory: (list) a list of directories to search for tweets
-        key: (list) a list of strings with each subsequent string matching a 
+        key: (list) a list of strings with each subsequent string matching a
             JSON field
 
     Returns:
@@ -113,11 +113,17 @@ def get_values(tweets, key):
     '''
     A function to get the value for a particular field from a list of tweets
 
-    tweets: a list of tweets to parse
-    field: field to get
+    Args:
+        tweets: a list of tweets to parse
+        field: field to get
 
-    Returns a list of the values from the fields
+    Returns:
+        a list of the values from the fields
+
+    Raises:
+        KeyError
     '''
+
     ls = list()  # the list to return
     # access the value from each field and store it to return
     for tweet in tweets:
@@ -126,8 +132,8 @@ def get_values(tweets, key):
             ls.append(tweet[key[0]])
         # print a message if the key is not found
         except KeyError:
-            print("Key (\"{0}\") was not found for a tweet".format(
-                    key[0]))
+            print("Key (\"{0}\") was not found for tweet. ID: {1}".format(
+                    key[0], tweet["id_str"]))
 
     if len(key) == 1:
         # base case
@@ -139,9 +145,8 @@ def get_values(tweets, key):
 
 
 def parse_key_argument(inp):
-    '''
-    A function to parse the input for the key argument
-    '''
+    '''Parse the key to display'''
+
     return inp.split(',')
 
 
@@ -161,9 +166,10 @@ def load_values_from_file(fin):
 
 if __name__ == '__main__':
     directory = sys.argv[2]
+    directory = os.path.join(PATH, directory)
     if sys.argv[1] == "con":
         key = parse_key_argument(sys.argv[3])
-        consolidate(directory, key)
+        print(consolidate([directory], key))
     elif sys.argv[1] == "loc":
         get_locations(directory)
     elif sys.argv[1] == "save":
