@@ -15,33 +15,25 @@ from joblib import Parallel, delayed
 from config import PATH
 
 
-def get_tweets(dirs, prefix=None, key=None):
-    '''
+def get_tweets(dirs, key=None):
+    '''Get all the tweets from a list of directories
+
     A function to get all the tweets from a list of directories
 
-    directory: a directory with files that have tweets separated by lines
+    Args:
+        directory (list): a list of directories
 
-    Returns a the list of tweets and the number filtered
+    Return:
+        (tuple) the first component is a the list of tweets and the second
+        component is the number filtered tweets (int)
     '''
 
-    files = list()  # the list of flume files
     ls = list()  # the list of tweets to return
     num_filtered = 0  # the number of filtered tweets
+    files = list()  # the list of flume files
 
-    # add the prefix to the directory arguments
-    if prefix is not None:
-        dirs = [os.path.join(prefix, d) for d in dirs]
-
-    # find all the flume files and add them to a list of files
-    for d in dirs:
-        print("Walking Directory: {0}".format(d))  # Log
-        for dirp, dirn, fils in os.walk(d):
-            print(dirp)  # Log
-            print("Number of files: {0}".format(len(fils)))  # Log
-            files.extend([os.path.join(dirp, f) for f in fils])
-
-    print("Found all files in {0}".format(dirs))  # Log
-    print("Number of files: {0}".format(len(files)))  # Log
+    # Find all the flume files
+    files = get_flume_files(dirs)
 
     # process files
     temp = Parallel(n_jobs=-1)(delayed(
@@ -55,34 +47,59 @@ def get_tweets(dirs, prefix=None, key=None):
     return (ls, num_filtered)
 
 
+def get_flume_files(dirs):
+    '''Find all the flume files from a list of directories
+
+    Args:
+        dirs (list): a list of directories containing flume files
+
+    Return:
+        list of strings that are paths to files
+    '''
+
+    files = list()  # the list of files
+
+    # find all the flume files and add them to a list of files
+    for d in dirs:
+        print("Walking Directory: {0}".format(d))  # Log
+        for dirp, dirn, fils in os.walk(d):
+            print(dirp)  # Log
+            print("Number of files: {0}".format(len(fils)))  # Log
+            files.extend([os.path.join(dirp, f) for f in fils])
+
+    print("Found all files in {0}".format(dirs))  # Log
+    print("Number of files: {0}".format(len(files)))  # Log
+
+    return(files)
+
+
 def process_flume_file(fin, key=None):
+
+    # If there's an error wrap this in a try block
     ls = list()
     num_filtered = 0
-    try:
-        with open(fin, 'r') as f:
-            for line in f:
-                    # Get the tweet from the json
-                    # and append it to ls if it is in English
-                    tweet = json.loads(line)
-                    if tweet["lang"] == "en":
-                        # only process tweets in English
-                        if key is None:
-                            ls.append(tweet)
-                        elif key == 'text':
-                            if tweet.get("extended_tweet") is None:
-                                text = tweet["text"]
-                            else:
-                                text = tweet["extended_tweet"]["full_text"]
-                            ls.append(text)
-                        elif key == 'names':
-                            if tweet.get('extended_tweet') is not None:
-                                ls.append(tweet['retweeted_status']['user']['screen_name'])
-                            ls.append(tweet['user']['screen_name'])
-                    else:
-                        # the tweet isn't English. Filter it!
-                        num_filtered += 1
-    except:
-        pass
+    with open(fin, 'r') as f:
+        for line in f:
+                # Get the tweet from the json
+                # and append it to ls if it is in English
+                tweet = json.loads(line)
+                if tweet["lang"] == "en":
+                    # only process tweets in English
+                    if key is None:
+                        ls.append(tweet)
+                    elif key == 'text':
+                        if tweet.get("extended_tweet") is None:
+                            text = tweet["text"]
+                        else:
+                            text = tweet["extended_tweet"]["full_text"]
+                        ls.append(text)
+                    elif key == 'names':
+                        if tweet.get('extended_tweet') is not None:
+                            ls.append(tweet['retweeted_status']['user']['screen_name'])
+                        ls.append(tweet['user']['screen_name'])
+                else:
+                    # the tweet isn't English. Filter it!
+                    num_filtered += 1
     return(ls, num_filtered)
 
 
