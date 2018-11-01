@@ -16,7 +16,30 @@ from config import PATH
 import config
 
 
-def get_tweets(dirs, key=None):
+def consolidate(directory, key, outfile=None):
+    '''Consolidates the values of a specific field from a directory of tweets
+
+    A wrapper function for get_tweets and get_values to consolidate all the
+    values in all the tweets in a given directory.
+
+    Args:
+        directory: (list) a list of directories to search for tweets
+        key: (list) a list of strings with each subsequent string matching a
+            JSON field
+
+    Returns:
+        list of values from that given field
+    '''
+
+    # get all the tweets from directory
+    tweets, filt_num = get_tweets(directory)
+    # get all the values from the tweets
+    values = get_values(tweets, key)
+
+    return(values)
+
+
+def get_tweets(dirs):
     '''Get all the tweets from a list of directories
 
     A function to get all the tweets from a list of directories
@@ -38,7 +61,7 @@ def get_tweets(dirs, key=None):
 
     # process files
     temp = Parallel(n_jobs=-1)(delayed(
-        process_flume_file)(f,key=key) for f in files)
+        process_flume_file)(f) for f in files)
     for x in temp:
         ls += x[0]
         num_filtered += x[1]
@@ -121,29 +144,6 @@ def process_flume_file(fin):
     return(ls, num_filtered)
 
 
-def consolidate(directory, key, outfile=None):
-    '''Consolidates the values of a specific field from a directory of tweets
-
-    A wrapper function for get_tweets and get_values to consolidate all the
-    values in all the tweets in a given directory.
-
-    Args:
-        directory: (list) a list of directories to search for tweets
-        key: (list) a list of strings with each subsequent string matching a
-            JSON field
-
-    Returns:
-        list of values from that given field
-    '''
-
-    # get all the tweets from directory
-    tweets, filt_num = get_tweets(directory)
-    # get all the values from the tweets
-    values = get_values(tweets, key)
-
-    return(values)
-
-
 def get_values(tweets, key):
     '''Get the values for a particular field from a list of tweets
 
@@ -184,18 +184,41 @@ def parse_key_argument(inp):
     return inp.split(',')
 
 
-def save_to_file(values, fout):
+def save_to_file(data, fout):
+    '''Save data to a file
+
+    Args:
+        data: not a specified type
+
+    Return:
+        0: success
+        1: failure
+
+    '''
+
+    status = 0  # the status to return
     f = open(fout, 'wb')
     try:
-        pickle.dump(values, f)
+        pickle.dump(data, f)
     finally:
         f.close()
 
+    return(status)
 
-def load_values_from_file(fin):
+
+def load_from_file(fin):
+    '''Load data from file
+
+    Args:
+        fin (string): file to read from
+
+    Return:
+        data (any type)
+    '''
+
     f = open(fin, 'rb')
-    values = pickle.load(f, encoding="utf8")
-    return(values)
+    data = pickle.load(f, encoding="utf8")
+    return(data)
 
 
 if __name__ == '__main__':
