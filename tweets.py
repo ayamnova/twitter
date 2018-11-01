@@ -13,6 +13,7 @@ import sys
 import pickle
 from joblib import Parallel, delayed
 from config import PATH
+import config
 
 
 def get_tweets(dirs, key=None):
@@ -73,32 +74,49 @@ def get_flume_files(dirs):
     return(files)
 
 
-def process_flume_file(fin, key=None):
+def is_valid(tweet):
+    '''Determine whether tweet is valid
+
+    Args:
+        tweet (tweet): tweet to test whether it needs to be filtered
+
+    Return:
+        bool:
+
+    '''
+
+    if tweet["lang"] in config.LANG:
+        return(True)
+    else:
+        return(False)
+
+
+def process_flume_file(fin):
+    '''Return a list of tweets from a flume file
+
+    Args:
+        fin (string): file to read from
+
+    Return:
+        tuple: first component is a list of tweets, the second component is the
+            number of tweets filtered
+    '''
+
+
+    ls = list()  # the list to return
+    num_filtered = 0  # the number of filtered tweets
 
     # If there's an error wrap this in a try block
-    ls = list()
-    num_filtered = 0
     with open(fin, 'r') as f:
+        # Read each line as a new tweet
         for line in f:
                 # Get the tweet from the json
-                # and append it to ls if it is in English
                 tweet = json.loads(line)
-                if tweet["lang"] == "en":
-                    # only process tweets in English
-                    if key is None:
-                        ls.append(tweet)
-                    elif key == 'text':
-                        if tweet.get("extended_tweet") is None:
-                            text = tweet["text"]
-                        else:
-                            text = tweet["extended_tweet"]["full_text"]
-                        ls.append(text)
-                    elif key == 'names':
-                        if tweet.get('extended_tweet') is not None:
-                            ls.append(tweet['retweeted_status']['user']['screen_name'])
-                        ls.append(tweet['user']['screen_name'])
+                if is_valid(tweet):
+                    # Append good tweets to the return list
+                    ls.append(tweet)
                 else:
-                    # the tweet isn't English. Filter it!
+                    # Count the number of filtered tweets
                     num_filtered += 1
     return(ls, num_filtered)
 
@@ -127,8 +145,7 @@ def consolidate(directory, key, outfile=None):
 
 
 def get_values(tweets, key):
-    '''
-    A function to get the value for a particular field from a list of tweets
+    '''Get the values for a particular field from a list of tweets
 
     Args:
         tweets: a list of tweets to parse
