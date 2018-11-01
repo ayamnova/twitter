@@ -9,10 +9,8 @@ Date: 5/29/2018
 
 import json
 import os
-import sys
 import pickle
 from joblib import Parallel, delayed
-from config import PATH
 import config
 
 
@@ -219,30 +217,3 @@ def load_from_file(fin):
     f = open(fin, 'rb')
     data = pickle.load(f, encoding="utf8")
     return(data)
-
-
-if __name__ == '__main__':
-    directory = sys.argv[2]
-    directory = os.path.join(PATH, directory)
-    if sys.argv[1] == "con":
-        key = parse_key_argument(sys.argv[3])
-        print(consolidate([directory], key))
-    elif sys.argv[1] == "loc":
-        get_locations(directory)
-    elif sys.argv[1] == "save":
-        dirs = sys.argv[3].split(',')
-        tweets = get_tweets(dirs, key=sys.argv[2], prefix=PATH)
-        v = {
-                'data': tweets[0], 
-                'num': len(tweets[0]),
-                'num_filtered': tweets[1]
-            }
-        save_to_file(v, sys.argv[4])
-    elif sys.argv[1] == "load":
-        val = load_values_from_file(sys.argv[2])
-        for v in val['data']:
-            print(v)
-    else:
-        get_tweets(["./crisis/crisis/2018/05/31"])
-        print("I didin't understand what method you are calling."
-                + "Please enter 'con', 'loc' or 'sent'")
