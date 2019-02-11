@@ -8,7 +8,7 @@ Date: 6/25/2018
 
 import sys
 from os.path import join as jn
-from tweets import get_tweets, get_sentiment
+from tweets import get_tweets
 from config import PATH, OUT
 
 
