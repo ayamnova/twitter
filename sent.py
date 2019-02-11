@@ -9,6 +9,8 @@ Date: 6/25/2018
 import sys
 from os.path import join as jn
 from tweets import get_tweets
+from joblib import Parallel, delayed
+from afinn import Afinn
 from config import PATH, OUT
 
 
@@ -56,7 +58,7 @@ def process_sentiment(tweet):
     neut = 0
 
     afinn = Afinn(emoticons=True)
-    sc = afinn.score(get_text(tweet))
+    sc = afinn.score(tweet['text'])
 
     total += sc
 

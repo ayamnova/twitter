@@ -16,7 +16,7 @@ from os.path import join as jn
 from tweets import get_tweets
 from sent import get_sentiment
 from tweets import save_to_file as save
-from tweets import load_values_from_file as load
+from tweets import load_from_file as load
 
 from config import PATH, OUT, PROC
 
@@ -1070,8 +1070,11 @@ def to_CSV(out, data, by_state=False):
 
 
 if __name__ == '__main__':
-    tw = get_tweets(['./data/25crisis/'])
+    tw = get_tweets([jn(PATH, '25crisis')])
     tweets, filt = tw
+    for t in tweets:
+        print(t['user']['screen_name'])
+    '''
     g = get_geo(tweets)
     print(g['places'])
 
@@ -1082,3 +1085,4 @@ if __name__ == '__main__':
     # Save the geo data to a CSV
     print("Saving Country CSV File")
     to_CSV(jn(PROC, "geo-cn.csv"), g["places"])
+    '''
