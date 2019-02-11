@@ -36,4 +36,4 @@ layout = dict(
 )
 
 fig = dict( data=data, layout=layout )
-plotly.offline.plot(fig, filename='./out/sentmap.html')
+plotly.offline.plot(fig, filename=jn(OUT, 'sentmap.html'))
