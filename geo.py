@@ -11,7 +11,6 @@ Modified: 10/02/2018
 '''
 
 import carmen
-from afinn import Afinn
 from os.path import join as jn
 from tweets import get_tweets
 from sent import get_sentiment
@@ -1030,7 +1029,6 @@ def to_CSV(out, data, by_state=False):
     codes = dict()
     coord = dict()
 
-    print("Saving Country CSV File")
     total_pos_tweets = 0
     for loc in data:
         total_pos_tweets += data[loc]['sent']['pos']
@@ -1050,7 +1048,7 @@ def to_CSV(out, data, by_state=False):
         fout.write("Place,Code,Sentiment,Users,Lat,Lon,Count\n")
         for c in codes:
             if data.get(c) is not None:
-                s = data["sent"]["pos"] / total_pos_tweets
+                s = data[c]["sent"]["pos"] / total_pos_tweets
                 u = len(data[c]["users"])
                 t = data[c]["sent"]["pos"] \
                     + data[c]["sent"]["neg"] \
@@ -1072,9 +1070,7 @@ def to_CSV(out, data, by_state=False):
 if __name__ == '__main__':
     tw = get_tweets([jn(PATH, '25crisis')])
     tweets, filt = tw
-    for t in tweets:
-        print(t['user']['screen_name'])
-    '''
+
     g = get_geo(tweets)
     print(g['places'])
 
@@ -1085,4 +1081,3 @@ if __name__ == '__main__':
     # Save the geo data to a CSV
     print("Saving Country CSV File")
     to_CSV(jn(PROC, "geo-cn.csv"), g["places"])
-    '''
